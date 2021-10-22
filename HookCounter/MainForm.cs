@@ -62,6 +62,8 @@ namespace HookCounter {
                 string path = directory + @"\Settings.txt";
 
                 if (!Directory.Exists(directory)) { Directory.CreateDirectory(directory); }
+                if (!Directory.Exists(directory + @"\Profiles")) { Directory.CreateDirectory(directory + @"\Profiles"); }
+
                 if (!File.Exists(path))
                 { 
                     string[] defaultSettings = {"OverridenHookSizeX=50", "OverridenHookSizeY=102", "SurvivorPadding=130", "ChromaR=0", "ChromaG=255", "ChromaB=0"};

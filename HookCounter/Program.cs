@@ -38,14 +38,10 @@ class Program : Form {
             string path = directory + @"\Keybinds.txt";
 
             if (!Directory.Exists(directory)) { Directory.CreateDirectory(directory); }
+
             if (!File.Exists(path))
             {
-                string[] defaultKeybinds = {"SurvivorOneKey=NumPad1", "SurvivorTwoKey=NumPad2",
-                    "SurvivorThreeKey=NumPad3", "SurvivorFourKey=NumPad4",
-                    "ResetAllSurvivors=NumPad0", "Exit=NumPad7",
-                    "Help=NumPad9"};
-
-                File.WriteAllLines(path, defaultKeybinds);
+                SaveLoadHandler.SetDefaultSettings();
             }
 
             string[] rawKeybinds = File.ReadAllLines(path);
@@ -260,11 +256,16 @@ class Program : Form {
             this.ClientSize = new System.Drawing.Size(284, 261);
             this.Controls.Add(this.flowLayoutPanel1);
             this.Name = "Program";
+            this.Load += new System.EventHandler(this.Program_Load);
             this.flowLayoutPanel1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox3)).EndInit();
             this.ResumeLayout(false);
+
+    }
+
+    private void Program_Load(object sender, EventArgs e) {
 
     }
 }

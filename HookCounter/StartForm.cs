@@ -16,6 +16,8 @@ namespace HookCounter
         public MainForm form;
         public GlobalVars vars;
 
+        public string selectedProfile = "";
+
         public const int WM_NCLBUTTONDOWN = 0xA1;
         public const int HT_CAPTION = 0x2;
 
@@ -34,8 +36,46 @@ namespace HookCounter
         private void StartForm_Load(object sender, EventArgs e)
         {
             form.FormBorderStyle = FormBorderStyle.FixedToolWindow;
+            appVersionText.Text = $"Application Version: v{HookCounter.Properties.Resources.Version}";
             vars.allowGlobalKeypress = false;
             LoadSettings();
+            LoadProfiles();
+        }
+
+        public void LoadProfiles() {
+            string path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\HookCounter\Profiles";
+            string[] directories = Directory.GetDirectories(path);
+
+            for (int i = 0; i < directories.Length; i++) {
+                Label profileLabel = new Label();
+                profileLabel.Text = new DirectoryInfo(directories[i]).Name;
+                profileLabel.Parent = profilePanel;
+                profileLabel.AutoSize = false;
+
+                profileLabel.Font = new Font("Roboto Lt", 12, FontStyle.Regular);
+                profileLabel.ForeColor = Color.White;
+                profileLabel.TextAlign = ContentAlignment.MiddleCenter;
+
+                profileLabel.Location = new Point(3, 3 + (24 * i));
+                profileLabel.Size = new Size(profilePanel.Width - 23, 22);
+                if (!profilePanel.VerticalScroll.Visible) {
+                    profileLabel.Size = new Size(profilePanel.Width - 6, 22);
+                }
+
+                profileLabel.BackColor = Color.FromArgb(40, 40, 40);
+
+                profileLabel.MouseEnter += MouseEnterLabel;
+                profileLabel.MouseLeave += MouseLeaveLabel;
+                profileLabel.MouseDown += MouseEnterLabel;
+                profileLabel.MouseUp += MouseLeaveLabel;
+
+                profileLabel.Click += SelectProfile;
+            }
+        }
+
+        private void SelectProfile(object sender, EventArgs e) {
+            Label profileLabel = (Label)sender;
+            selectedProfile = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + $@"\HookCounter\Profiles\{profileLabel.Text}";
         }
 
         public void RemoveNumericUpDownArrows(NumericUpDown num)
@@ -164,35 +204,37 @@ namespace HookCounter
         }
 
 
-        public void SaveUserSettings()
+        public void SaveUserSettings(string profile)
         {
-            string savePath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\HookCounter\Settings.txt";
-            string keysPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\HookCounter\Keybinds.txt";
 
-            List<string> saveSettings = new List<string>();
+            string path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\HookCounter";
 
-            saveSettings.Add($"OverridenHookSizeX={hookIconX.Text}");
-            saveSettings.Add($"OverridenHookSizeY={hookIconY.Text}");
-            saveSettings.Add($"SurvivorPadding={survivorPadding.Text}");
-            saveSettings.Add($"ChromaR={chromaKeyR.Text}");
-            saveSettings.Add($"ChromaG={chromaKeyG.Text}");
-            saveSettings.Add($"ChromaB={chromaKeyB.Text}");
+            if (profile != "") { path = profile; }
 
-            File.WriteAllLines(savePath, saveSettings.ToArray());
+            Dictionary<string, string> baseSettings = new Dictionary<string, string>(),
+                                       keybindSettings = new Dictionary<string, string>();
 
-            List<string> keybindSettings = new List<string>();
+            baseSettings.Add($"OverridenHookSizeX", hookIconX.Text);
+            baseSettings.Add($"OverridenHookSizeY", hookIconY.Text);
+            baseSettings.Add($"SurvivorPadding", survivorPadding.Text);
+            baseSettings.Add($"ChromaR", chromaKeyR.Text);
+            baseSettings.Add($"ChromaG", chromaKeyG.Text);
+            baseSettings.Add($"ChromaB", chromaKeyB.Text);
 
-            keybindSettings.Add($"SurvivorOneKey={survivorHotkey1.Text}");
-            keybindSettings.Add($"SurvivorTwoKey={survivorHotkey2.Text}");
-            keybindSettings.Add($"SurvivorThreeKey={survivorHotkey3.Text}");
-            keybindSettings.Add($"SurvivorFourKey={survivorHotkey4.Text}");
-            keybindSettings.Add($"ResetAllSurvivors={resetSurvivorsHotkey.Text}");
-            keybindSettings.Add($"Exit={exitHotkey.Text}");
-            keybindSettings.Add($"Help={settingsHotkey.Text}");
+            keybindSettings.Add($"SurvivorOneKey", survivorHotkey1.Text);
+            keybindSettings.Add($"SurvivorTwoKey", survivorHotkey2.Text);
+            keybindSettings.Add($"SurvivorThreeKey", survivorHotkey3.Text);
+            keybindSettings.Add($"SurvivorFourKey", survivorHotkey4.Text);
+            keybindSettings.Add($"ResetAllSurvivors", resetSurvivorsHotkey.Text);
+            keybindSettings.Add($"SendCounterDataKey", sendDataHotkey.Text);
+            keybindSettings.Add($"Exit", exitHotkey.Text);
+            keybindSettings.Add($"Help", settingsHotkey.Text);
 
-            File.WriteAllLines(keysPath, keybindSettings);
+            SaveLoadHandler.SaveSettings(path, baseSettings, keybindSettings);
 
-            Application.Restart();
+            if (profile == "") {
+                Application.Restart();
+            }
         }
 
         private void CloseForm(object sender, EventArgs e)
@@ -257,7 +299,7 @@ namespace HookCounter
         {
             if (e.Button == MouseButtons.Left)
             {
-                SaveUserSettings();
+                SaveUserSettings("");
             } else
             {
                 string savePath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\HookCounter\Settings.txt";
@@ -279,6 +321,74 @@ namespace HookCounter
         {
             TextBox textBox = (TextBox)sender;
             if (textBox.ReadOnly) { textBox.ReadOnly = false; }
+        }
+
+        private void ServerHelpText_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("The Stream Hook Counter lets you send either hooks, or kills to a web server in the JSON format." +
+                "The URL you see in the Web Server URL box, refers to the URL that this information will go to.\n" +
+                "This capability lets you take what is already on the Hook Counter, and send that data for usage in other applications!", "Web Server Help", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void ScrollPanel(object sender, ScrollEventArgs e) {
+
+        }
+
+        private void LoadProfile(object sender, EventArgs e) {
+            if (!File.Exists(selectedProfile + @"\Settings.txt") || !File.Exists(selectedProfile + @"\Keybinds.txt")) {
+                MessageBox.Show("This profile is not complete or is corrupted and as a result cannot be loaded at this time.", "Error Loading Profile", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            
+            try {
+                string savePath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\HookCounter\Settings.txt";
+                string keysPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\HookCounter\Keybinds.txt";
+
+                File.Copy(selectedProfile + @"\Settings.txt", savePath, true);
+                File.Copy(selectedProfile + @"\Keybinds.txt", keysPath, true);
+            } catch (Exception ex) {
+                MessageBox.Show("" +
+                    "There was an error setting up this profile, below you will find the error, the application will restart. Please screenshot it and send it to the developer: \n" +
+                    $"Source: {ex.Source}\n" +
+                    $"Message: {ex.Message}", "Error Loading Profile", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
+            Application.Restart();
+        }
+
+        private void SaveToProfile(object sender, EventArgs e) {
+            SaveUserSettings(selectedProfile);
+        }
+
+        private void DeleteProfile(object sender, EventArgs e) {
+            if (Directory.Exists(selectedProfile)) {
+                Directory.Delete(selectedProfile, true);
+                selectedProfile = "";
+                profilePanel.Controls.Clear();
+                LoadProfiles();
+            }
+        }
+
+        private void SaveAsNewProfile(object sender, EventArgs e) {
+            PanelName panelName = new PanelName(this);
+            panelName.Activate();
+            panelName.Show();
+            this.Hide();
+        }
+
+        public void SetNewProfile(string profileName) {
+            string basePath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + $@"\HookCounter\Profiles\{profileName}";
+            Console.WriteLine(basePath);
+            if (Directory.Exists(basePath)) {
+                MessageBox.Show("This profile already exists! Please select a different name.", "Profile already exists!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            Directory.CreateDirectory(basePath);
+
+            SaveUserSettings(basePath);
+
+            LoadProfiles();
         }
     }
 }
