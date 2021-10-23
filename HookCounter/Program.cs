@@ -18,7 +18,7 @@ class Program : Form {
     private PictureBox pictureBox3;
     private static MainForm form;
     private static GlobalVars vars;
-    private static Keys[] hookKeys = new Keys[7];
+    private static Keys[] hookKeys = new Keys[8];
     
     public static void Main() {
         vars = new GlobalVars();
@@ -61,6 +61,7 @@ class Program : Form {
             hookKeys[4] = FindKeybind(keybinds, "ResetAllSurvivors", rawKeybinds.Length);
             hookKeys[5] = FindKeybind(keybinds, "Exit", rawKeybinds.Length);
             hookKeys[6] = FindKeybind(keybinds, "Help", rawKeybinds.Length);
+            hookKeys[7] = FindKeybind(keybinds, "SendDataRequest", rawKeybinds.Length);
 
             List<string> rawBindList = new List<string>();
             for (int i = 0; i < rawKeybinds.Length; i++) { rawBindList.Add(rawKeybinds[i]); }
@@ -92,6 +93,9 @@ class Program : Form {
                             break;
                         case 6:
                             rawBindList.Add("Help=NumPad9");
+                            break;
+                        case 7:
+                            rawBindList.Add("SendDataRequest=NumPad8");
                             break;
                     }
                     changedBindings = true;
@@ -173,6 +177,9 @@ class Program : Form {
                         "Help", MessageBoxButtons.OK, MessageBoxIcon.Information);*/
                     StartForm settings = new StartForm(form, vars);
                     settings.Show();
+                }
+                else if (key == hookKeys[7]) {
+                    form.SendToServer();
                 }
             }
         }

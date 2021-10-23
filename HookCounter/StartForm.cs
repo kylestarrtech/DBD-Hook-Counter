@@ -35,6 +35,7 @@ namespace HookCounter
 
         private void StartForm_Load(object sender, EventArgs e)
         {
+            Console.WriteLine(RequestInformation.ConvertToJSON(1, 3, 2, 0));
             form.FormBorderStyle = FormBorderStyle.FixedToolWindow;
             appVersionText.Text = $"Application Version: v{HookCounter.Properties.Resources.Version}";
             vars.allowGlobalKeypress = false;
@@ -45,6 +46,10 @@ namespace HookCounter
         public void LoadProfiles() {
             string path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\HookCounter\Profiles";
             string[] directories = Directory.GetDirectories(path);
+
+            int modifier = 6;
+
+            if (directories.Length > 7) { modifier = 23; }
 
             for (int i = 0; i < directories.Length; i++) {
                 Label profileLabel = new Label();
@@ -57,10 +62,7 @@ namespace HookCounter
                 profileLabel.TextAlign = ContentAlignment.MiddleCenter;
 
                 profileLabel.Location = new Point(3, 3 + (24 * i));
-                profileLabel.Size = new Size(profilePanel.Width - 23, 22);
-                if (!profilePanel.VerticalScroll.Visible) {
-                    profileLabel.Size = new Size(profilePanel.Width - 6, 22);
-                }
+                profileLabel.Size = new Size(profilePanel.Width - modifier, 22);
 
                 profileLabel.BackColor = Color.FromArgb(40, 40, 40);
 
@@ -164,6 +166,7 @@ namespace HookCounter
                 chromaKeyR.Text = FindSetting(splitSettings, "ChromaR", settings.Length);
                 chromaKeyG.Text = FindSetting(splitSettings, "ChromaG", settings.Length);
                 chromaKeyB.Text = FindSetting(splitSettings, "ChromaB", settings.Length);
+                serverURLTextbox.Text = FindSetting(splitSettings, "ServerURL", settings.Length);
 
                 string[] keybinds = File.ReadAllLines(keysPath);
                 string[,] splitKeybinds = new string[keybinds.Length, 2];
@@ -220,6 +223,7 @@ namespace HookCounter
             baseSettings.Add($"ChromaR", chromaKeyR.Text);
             baseSettings.Add($"ChromaG", chromaKeyG.Text);
             baseSettings.Add($"ChromaB", chromaKeyB.Text);
+            baseSettings.Add($"ServerURL", serverURLTextbox.Text);
 
             keybindSettings.Add($"SurvivorOneKey", survivorHotkey1.Text);
             keybindSettings.Add($"SurvivorTwoKey", survivorHotkey2.Text);

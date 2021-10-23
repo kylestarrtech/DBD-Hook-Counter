@@ -13,6 +13,8 @@ namespace HookCounter {
         private Survivor[] survivors = new Survivor[4];
         private int SurvivorPadding = 130;
         private Size HookSize = new Size(50, 102);
+        private string serverURL = "";
+
         public GlobalVars vars;
 
         public MainForm(GlobalVars _vars) {
@@ -93,6 +95,7 @@ namespace HookCounter {
                 string chromaKeyR = FindSetting(settings, "ChromaR", rawSettings.Length);
                 string chromaKeyG = FindSetting(settings, "ChromaG", rawSettings.Length);
                 string chromaKeyB = FindSetting(settings, "ChromaB", rawSettings.Length);
+                serverURL = FindSetting(settings, "ServerURL", rawSettings.Length);
 
                 List<string> rawSettingsList = new List<string>();
                 for (int i = 0; i < rawSettings.Length; i++){ rawSettingsList.Add(rawSettings[i]); }
@@ -103,7 +106,8 @@ namespace HookCounter {
                 if (survPadding == "") { rawSettingsList.Add("SurvivorPadding=130"); changedSettings = true; } else
                 if (chromaKeyR == "") { rawSettingsList.Add("ChromaR=0"); changedSettings = true; } else
                 if (chromaKeyG == "") { rawSettingsList.Add("ChromaG=255"); changedSettings = true; } else
-                if (chromaKeyB == "") { rawSettingsList.Add("ChromaB=0"); changedSettings = true; }
+                if (chromaKeyB == "") { rawSettingsList.Add("ChromaB=0"); changedSettings = true; } else
+                if (serverURL == "") { rawSettingsList.Add("ServerURL=http://localhost:3000"); changedSettings = true; }
 
                 File.WriteAllLines(path, rawSettingsList.ToArray());
 
@@ -201,6 +205,12 @@ namespace HookCounter {
 
         private void Active(object sender, EventArgs e)
         {
+        }
+
+        public void SendToServer() {
+            string jsonData = RequestInformation.ConvertToJSON(survivors[0].hookStates, survivors[1].hookStates, survivors[2].hookStates, survivors[3].hookStates);
+
+            RequestInformation.SendPOSTRequest(serverURL, jsonData);
         }
     }
 }

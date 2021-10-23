@@ -62,7 +62,8 @@ namespace HookCounter
                 { "SurvivorPadding", "130" },
                 { "ChromaR", "0" },
                 { "ChromaG", "255" },
-                { "ChromaB", "0" }
+                { "ChromaB", "0" },
+                { "ServerURL", "http://localhost:3000" }
             };
 
             Dictionary<string, string> defaultKeybinds = new Dictionary<string, string>() {
